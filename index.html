@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>رادار تكاليف صويلح | CostFlow Dashboard</title>
+
+  <!-- خطوط عربية فائقة الحداثة: IBM Plex Sans Arabic و Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js للرسوم البيانية التفاعلية -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Canvas Confetti للاحتفال عند السداد -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['IBM Plex Sans Arabic', 'Cairo', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            mint: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+            }
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+            'card': '0 10px 30px -4px rgba(16, 24, 40, 0.06)',
+            'elevated': '0 20px 40px -6px rgba(16, 24, 40, 0.1)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* خلفية ناعمة بنقاط هادئة تعطي مظهراً فائق الحداثة */
+    .bg-mesh {
+      background-color: #f8fafc;
+      background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* وميض الطوارئ الأنيق */
+    @keyframes subtle-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.02); opacity: 0.9; }
+    }
+    .pulse-urgent {
+      animation: subtle-pulse 2s infinite ease-in-out;
+    }
+
+    /* مظهر الزجاج المصقول (Glassmorphism) */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    /* شريط التمرير الرفيع الأنيق */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-mesh min-h-screen flex flex-col selection:bg-brand-100 selection:text-brand-700">
+
+  <!-- ==================== شريط التنقل العلوي (MODERN TOP BAR) ==================== -->
+  <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 shadow-soft">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- الهوية والشعار المودرن -->
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-mint-500 flex items-center justify-center text-white shadow-md shadow-brand-500/25">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl font-extrabold tracking-tight text-slate-900 font-sans">رادار تكاليف صويلح</h1>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-600 border border-brand-200/60">صويلح CostFlow</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium">نظام المتابعة الذكية للتكاليف والتجديد الآلي مع مزامنة Firebase</p>
+          </div>
+        </div>
+
+        <!-- التبديل بين لوحة التحكم ووثيقة الـ SRS -->
+        <div class="flex items-center bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
+          <button id="nav-btn-proto" onclick="switchTab('proto')" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-sm border border-slate-200/60">
+            <span>⚡</span>
+            <span>لوحة التحكم المباشرة</span>
+          </button>
+          <button id="nav-btn-srs" onclick="switchTab('srs')" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+            <span>📋</span>
+            <span>وثيقة المتطلبات (SRS)</span>
+          </button>
+        </div>
+
+        <!-- أزرار الإجراءات السريعة، المزامنة، والصلاحيات -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          
+          <!-- مؤشر حالة الاتصال السحابي (Firebase Live Sync Badge) -->
+          <button id="cloud-sync-btn" onclick="openCloudModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold transition shadow-sm cursor-pointer" title="انقر لعرض تفاصيل قاعدة بيانات Firebase والمزامنة">
+            <span id="sync-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="sync-text" class="text-slate-700">سحابي متصل</span>
+          </button>
+
+          <!-- الصلاحية -->
+          <div class="hidden md:flex items-center bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs gap-1.5">
+            <span class="text-slate-500 font-medium">الصلاحية:</span>
+            <select id="user-role-select" onchange="changeRole(this.value)" class="bg-transparent text-slate-800 font-bold focus:outline-none cursor-pointer">
+              <option value="admin">👑 المدير المالي (Admin)</option>
+              <option value="viewer">👁️ مشاهد فقط (Viewer)</option>
+            </select>
+          </div>
+
+          <!-- زر إضافة التزام -->
+          <button id="top-add-btn" onclick="openCostModal()" class="flex items-center gap-2 bg-slate-900 hover:bg-brand-600 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-slate-900/10 transition-all transform active:scale-95">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span class="hidden sm:inline">إضافة التزام</span>
+          </button>
+
+          <!-- زر تصدير Excel -->
+          <button onclick="exportToCSV()" class="p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition" title="تصدير إلى إكسل">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== المحتوى الرئيسي ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ========================================================================= -->
+    <!-- القسم الأول: لوحة التحكم المباشرة (LIVE DASHBOARD & PROTOTYPE) -->
+    <!-- ========================================================================= -->
+    <div id="tab-proto-content" class="space-y-8">
+      
+      <!-- شريط تنبيه دور المشاهد -->
+      <div id="viewer-badge" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between text-amber-900 text-xs sm:text-sm shadow-sm">
+        <div class="flex items-center gap-2">
+          <span>👁️</span>
+          <span>أنت تتصفح النظام بوضع <strong>المشاهدة (Viewer)</strong> — أزرار الإضافة والتعديل وتأكيد السداد للقراءة فقط.</span>
+        </div>
+        <button onclick="changeRole('admin')" class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition">
+          التبديل إلى مدير
+        </button>
+      </div>
+
+      <!-- بطاقات المؤشرات الرئيسية بتصميم كروت بيضاء فاخرة -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <!-- إجمالي التكاليف للشهر -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-soft hover:shadow-card transition-all group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">معدل التكاليف الشهرية</span>
+            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+              💵
+            </div>
+          </div>
+          <div class="mt-4">
+            <div id="stat-monthly" class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">0 ر.س</div>
+            <div class="flex items-center gap-1.5 mt-1 text-xs text-slate-500 font-medium">
+              <span class="text-emerald-600 font-bold">●</span>
+              <span>شامل كافة الالتزامات الدورية</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- المستحقات العاجلة والمتأخرة 🔴 -->
+        <div class="bg-gradient-to-br from-red-50/70 to-white rounded-3xl p-6 border border-red-200/70 shadow-soft hover:shadow-card transition-all group relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+              <span class="text-xs font-bold text-red-700">عاجل (&le; 7 أيام أو متأخر)</span>
+            </div>
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-bold">
+              ⏰
+            </div>
+          </div>
+          <div class="mt-4">
+            <div id="stat-danger-count" class="text-2xl sm:text-3xl font-extrabold text-red-600 font-mono">0 بنود</div>
+            <div id="stat-danger-sum" class="mt-1 text-xs text-red-800 font-semibold font-mono">بقيمة: 0 ر.س</div>
+          </div>
+        </div>
+
+        <!-- المستحقات الوشيكة (8-30 يوم) 🟡 -->
+        <div class="bg-gradient-to-br from-amber-50/70 to-white rounded-3xl p-6 border border-amber-200/70 shadow-soft hover:shadow-card transition-all group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-700">قريب الاستحقاق (8-30 يوم)</span>
+            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+              🗓️
+            </div>
+          </div>
+          <div class="mt-4">
+            <div id="stat-warning-count" class="text-2xl sm:text-3xl font-extrabold text-amber-600 font-mono">0 بنود</div>
+            <div id="stat-warning-sum" class="mt-1 text-xs text-amber-800 font-semibold font-mono">بقيمة: 0 ر.س</div>
+          </div>
+        </div>
+
+        <!-- المستحقات الآمنة (> 30 يوم) 🟢 -->
+        <div class="bg-gradient-to-br from-emerald-50/70 to-white rounded-3xl p-6 border border-emerald-200/70 shadow-soft hover:shadow-card transition-all group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-700">مستقر وآمن (&gt; 30 يوم)</span>
+            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+              🛡️
+            </div>
+          </div>
+          <div class="mt-4">
+            <div id="stat-safe-count" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 font-mono">0 بنود</div>
+            <div id="stat-safe-sum" class="mt-1 text-xs text-emerald-800 font-semibold font-mono">بقيمة: 0 ر.س</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- الرسوم البيانية والأرشيف بتصميم هادئ ومريح للعين -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- توزيع المصاريف بين الأقسام (Doughnut) -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-soft flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-bold text-slate-800">توزيع التكاليف حسب القسم</h3>
+              <span class="text-[11px] text-slate-500">القيمة الإجمالية</span>
+            </div>
+            <div class="h-48 relative flex items-center justify-center my-2">
+              <canvas id="categoryDonutChart"></canvas>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 text-center text-xs">
+            <div class="bg-blue-50/80 p-2 rounded-xl">
+              <span class="block text-blue-600 font-bold">الإيجارات</span>
+              <span id="chart-pct-rentals" class="text-slate-700 font-mono font-bold">0%</span>
+            </div>
+            <div class="bg-amber-50/80 p-2 rounded-xl">
+              <span class="block text-amber-600 font-bold">الحكومية</span>
+              <span id="chart-pct-gov" class="text-slate-700 font-mono font-bold">0%</span>
+            </div>
+            <div class="bg-purple-50/80 p-2 rounded-xl">
+              <span class="block text-purple-600 font-bold">البرمجيات</span>
+              <span id="chart-pct-tech" class="text-slate-700 font-mono font-bold">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- التدفقات النقدية المتوقعة للأشهر القادمة (Bar Chart) -->
+        <div class="lg:col-span-2 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-soft flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h3 class="text-sm font-bold text-slate-800">الالتزامات النقدية المتوقعة للأشهر القادمة</h3>
+                <p class="text-xs text-slate-500">توزيع السيولة المطلوبة لتفادي أي عجز مالي</p>
+              </div>
+              <button onclick="openArchiveModal()" class="text-xs font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 px-3.5 py-1.5 rounded-xl border border-brand-200/60 transition flex items-center gap-1.5">
+                <span>📜</span>
+                <span>سجل السدادات السابقة</span>
+              </button>
+            </div>
+            <div class="h-48 relative my-2">
+              <canvas id="timelineBarChart"></canvas>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
+            <span class="flex items-center gap-1 text-emerald-700 font-medium">
+              <span>✨</span>
+              <span>عند تأكيد سداد أي بند، يُنقل للأرشيف ويتحدث العداد للدورة القادمة تلقائياً في قاعدة البيانات.</span>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== شريط الفلاتر والبحث المودرن ==================== -->
+      <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-soft">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          
+          <!-- أزرار الأقسام (Pills) -->
+          <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <button onclick="filterCat('all')" class="cat-pill active px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-slate-900 text-white shadow-sm">
+              الكل (<span id="pill-count-all">0</span>)
+            </button>
+            <button onclick="filterCat('rentals')" class="cat-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+              🏢 الإيجارات (<span id="pill-count-rentals">0</span>)
+            </button>
+            <button onclick="filterCat('government')" class="cat-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+              🏛️ الرسوم والتراخيص (<span id="pill-count-gov">0</span>)
+            </button>
+            <button onclick="filterCat('tech')" class="cat-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+              💻 التقنية والاشتراكات (<span id="pill-count-tech">0</span>)
+            </button>
+          </div>
+
+          <!-- أدوات البحث والفرز والتبديل -->
+          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            
+            <!-- خانة البحث -->
+            <div class="relative flex-1 sm:w-60">
+              <span class="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400 text-sm">🔍</span>
+              <input type="text" id="search-input" oninput="renderItems()" placeholder="بحث بالاسم أو الفرع..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition">
+            </div>
+
+            <!-- فلتر مستوى الأولوية -->
+            <select id="urgency-filter" onchange="renderItems()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-brand-500 cursor-pointer">
+              <option value="all">كل الأولويات</option>
+              <option value="danger">🔴 عاجل (&le; 7 أيام)</option>
+              <option value="warning">🟡 وشيك (8-30 يوم)</option>
+              <option value="safe">🟢 آمن (&gt; 30 يوم)</option>
+            </select>
+
+            <!-- مبدل نمط العرض (كروت / جدول) -->
+            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button id="view-mode-cards" onclick="setViewMode('cards')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white text-slate-900 shadow-sm" title="عرض بطاقات">🗂️</button>
+              <button id="view-mode-table" onclick="setViewMode('table')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-900" title="عرض جدول">📋</button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ==================== عرض بطاقات الالتزامات (CARDS GRID) ==================== -->
+      <div id="items-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- ديناميكي بالجافاسكربت -->
+      </div>
+
+      <!-- عرض الجدول المكتبي (TABLE VIEW) -->
+      <div id="items-table-container" class="hidden bg-white rounded-3xl border border-slate-200/80 shadow-soft overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs sm:text-sm">
+            <thead class="bg-slate-50/80 text-slate-600 border-b border-slate-200">
+              <tr>
+                <th class="py-4 px-5 font-bold">البند والتصنيف</th>
+                <th class="py-4 px-5 font-bold">الفرع / الجهة</th>
+                <th class="py-4 px-5 font-bold">القيمة المالية</th>
+                <th class="py-4 px-5 font-bold">الدورية</th>
+                <th class="py-4 px-5 font-bold">تاريخ الاستحقاق</th>
+                <th class="py-4 px-5 font-bold">المؤقت التنازلي</th>
+                <th class="py-4 px-5 font-bold text-center">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="items-table-body" class="divide-y divide-slate-100 text-slate-800">
+              <!-- ديناميكي -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- عند عدم وجود نتائج -->
+      <div id="empty-state" class="hidden text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 space-y-3">
+        <div class="text-4xl">🔍</div>
+        <h4 class="text-base font-bold text-slate-700">لا توجد بنود مطابقة للبحث أو الفلتر</h4>
+        <p class="text-xs text-slate-400">حاول مسح خانة البحث أو تغيير القسم المحدد</p>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- القسم الثاني: وثيقة المتطلبات والتصميم (SRS DOCUMENT VIEW) -->
+    <!-- ========================================================================= -->
+    <div id="tab-srs-content" class="hidden space-y-8">
+      
+      <!-- رأس الوثيقة الأنيق -->
+      <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-3xl p-8 shadow-elevated flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="space-y-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold border border-indigo-400/30">
+            📄 مواصفات هندسة البرمجيات القياسية (IEEE 830)
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black">وثيقة متطلبات وتصميم نظام إدارة تكاليف صويلح (SRS)</h2>
+          <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+            دليل فني ومعماري شامل لمبرمجي ومطوري النظام، يوضح هياكل البيانات، منطق التجديد التلقائي، مصفوفة الصلاحيات، والربط السحابي المباشر عبر Firebase Realtime Database.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="window.print()" class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-xs sm:text-sm font-bold transition shadow-md">
+            🖨️ طباعة كتقرير رسمي
+          </button>
+          <button onclick="switchTab('proto')" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs sm:text-sm font-bold transition shadow-md">
+            ⚡ العودة للوحة الحية
+          </button>
+        </div>
+      </div>
+
+      <!-- محتوى الوثيقة المنظم في كروت بيضاء سهلة القراءة -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- 1. نظرة عامة والهدف -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-soft space-y-3">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg">
+            1
+          </div>
+          <h3 class="text-base font-bold text-slate-900">نظرة عامة على النظام (Overview)</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            نظام داخلي لإدارة ومتابعة <strong>التكاليف الثابتة والمصاريف الدورية لمؤسسة صويلح</strong> (إيجارات الفروع، سكن العمال، الرسوم الحكومية، التراخيص، والاشتراكات البرمجية) مع مؤقتات تنازلية حية لمنع الغرامات وتحديث تواريخ الاستحقاق تلقائياً فور السداد.
+          </p>
+        </div>
+
+        <!-- 2. الترميز اللوني للمؤقتات -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-soft space-y-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+            2
+          </div>
+          <h3 class="text-base font-bold text-slate-900">محرك التنبيهات والترميز اللوني</h3>
+          <ul class="text-xs text-slate-600 space-y-2">
+            <li class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+              <span><strong>🔴 أحمر (حرج / متأخر):</strong> متبقي &le; 7 أيام أو متأخر.</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <span><strong>🟡 أصفر (تنبيه مسبق):</strong> متبقي من 8 إلى 30 يوماً.</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span><strong>🟢 أخضر (آمن ومستقر):</strong> متبقي أكثر من 30 يوماً.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 3. الصلاحيات (RBAC) -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-soft space-y-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
+            3
+          </div>
+          <h3 class="text-base font-bold text-slate-900">الصلاحيات وإدارة الأدوار (RBAC)</h3>
+          <ul class="text-xs text-slate-600 space-y-2">
+            <li><strong>👑 مدير النظام (Admin):</strong> إضافة، تعديل، حذف، وتأكيد السداد وتجديد الدورة.</li>
+            <li><strong>👁️ مستخدم المشاهدة (Viewer):</strong> استعراض لوحة التحكم والمؤقتات والتقارير دون إمكانية التعديل.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- تفصيل دورة التجديد الآلي (Renewal Logic) -->
+      <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-soft space-y-5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-mint-100 text-mint-600 flex items-center justify-center font-bold text-lg">
+            🔄
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">دورة إعادة تفعيل المؤقت بعد الدفع (Renewal Cycle Logic)</h3>
+            <p class="text-xs text-slate-500">آلية الأتمتة المنطقية عند تأكيد سداد أي التزام مالي</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 text-center">
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <span class="text-2xl block mb-1">1️⃣</span>
+            <div class="font-bold text-xs text-slate-900">الأرشفة والتوثيق</div>
+            <p class="text-[11px] text-slate-500 mt-1">حفظ سجل تاريخي في أرشيف السدادات بالمبلغ وتاريخ الدفع والمسؤول.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <span class="text-2xl block mb-1">2️⃣</span>
+            <div class="font-bold text-xs text-slate-900">احتساب التاريخ الجديد</div>
+            <p class="text-[11px] text-slate-500 mt-1">إضافة (+1 شهر، +3 أشهر، +6 أشهر، +سنة) للتاريخ حسب دورية البند.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <span class="text-2xl block mb-1">3️⃣</span>
+            <div class="font-bold text-xs text-slate-900">إعادة ضبط الحالة</div>
+            <p class="text-[11px] text-slate-500 mt-1">إرجاع حالة الالتزام إلى "غير مدفوع" للدورة الجديدة المتولدة.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <span class="text-2xl block mb-1">4️⃣</span>
+            <div class="font-bold text-xs text-slate-900">تشغيل المؤقت التنازلي</div>
+            <p class="text-[11px] text-slate-500 mt-1">إعادة تشغيل العداد التنازلي فوراً وتحويل لونه للأخضر 🟢 تلقائياً في السحابة.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- الربط السحابي وقاعدة بيانات Firebase Realtime Database -->
+      <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-soft space-y-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+              🔥
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">قاعدة البيانات السحابية الحية (Firebase Realtime Database)</h3>
+              <p class="text-xs text-slate-500">الاتصال المباشر والمزامنة اللحظية بين المتصفح وسحابة Google Firebase</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">🟢 متصل ونشط</span>
+        </div>
+
+        <div class="bg-slate-900 text-slate-200 p-5 rounded-2xl font-mono text-xs overflow-x-auto shadow-inner space-y-3">
+          <div>
+            <span class="text-amber-400 font-bold">// 1. Database Endpoint URL:</span>
+            <p class="text-emerald-400 mt-0.5">https://asir-a738d-default-rtdb.asia-southeast1.firebasedatabase.app</p>
+          </div>
+          <div>
+            <span class="text-amber-400 font-bold">// 2. Security Rules (قواعد الأمان والصلاحيات):</span>
+            <pre class="text-emerald-300 mt-1">{
+  "rules": {
+    ".read": "now < 1795122000000",   // متاح للقراءة حتى تاريخ 2026-11-20
+    ".write": "now < 1795122000000"  // متاح للكتابة حتى تاريخ 2026-11-20
+  }
+}</pre>
+          </div>
+          <div>
+            <span class="text-amber-400 font-bold">// 3. JSON Realtime Structure:</span>
+            <pre class="text-slate-300 mt-1">{
+  "items": [ /* قائمة التزامات صويلح والمؤقتات الدورية */ ],
+  "archive": [ /* سجل السدادات التاريخية */ ],
+  "lastUpdated": "2026-10-21T13:00:00Z"
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- التصميم المعماري وقواعد البيانات العلائقية البديلة -->
+      <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-soft space-y-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg">
+              🗄️
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">مخطط قاعدة البيانات العلائقية (Relational SQL Schema DDL)</h3>
+              <p class="text-xs text-slate-500">أكواد SQL احتياطية لقواعد بيانات PostgreSQL أو MySQL لمن يرغب بتطبيق محلي</p>
+            </div>
+          </div>
+          <button onclick="navigator.clipboard.writeText(document.getElementById('sql-code-area').innerText); showToast('تم نسخ كود SQL إلى الحافظة بنجاح!')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            📋 نسخ SQL
+          </button>
+        </div>
+
+        <div class="bg-slate-900 text-emerald-400 p-5 rounded-2xl font-mono text-xs overflow-x-auto shadow-inner">
+          <pre id="sql-code-area">
+-- 1. جدول بنود التكاليف الثابتة
+CREATE TABLE cost_items (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(50) NOT NULL,        -- 'rentals', 'government', 'tech'
+    subcategory VARCHAR(50) NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL,
+    due_date DATE NOT NULL,
+    recurrence VARCHAR(20) NOT NULL,      -- 'monthly', 'quarterly', 'semi_annual', 'annual'
+    target_entity VARCHAR(255),           -- اسم الفرع أو الموظف
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. جدول أرشيف السدادات والتدقيق المالي
+CREATE TABLE payment_archive (
+    id VARCHAR(50) PRIMARY KEY,
+    cost_item_id VARCHAR(50) REFERENCES cost_items(id),
+    item_title VARCHAR(255) NOT NULL,
+    amount_paid DECIMAL(12, 2) NOT NULL,
+    cycle_due_date DATE NOT NULL,
+    next_due_date DATE NOT NULL,
+    paid_by VARCHAR(100) NOT NULL,
+    ref_number VARCHAR(100),
+    paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</pre>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== نافذة تفاصيل قاعدة بيانات Firebase (CLOUD MODAL) ==================== -->
+  <div id="cloud-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-elevated flex flex-col">
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
+            🔥
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">سحابة Firebase Realtime Database</h3>
+            <p class="text-xs text-slate-500">حالة الربط والمزامنة السحابية الفورية</p>
+          </div>
+        </div>
+        <button onclick="closeCloudModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <!-- الحالة -->
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-medium">حالة الاتصال:</span>
+            <span id="modal-cloud-status" class="font-bold flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              متصل ومزامن لحظياً
+            </span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-medium">المنطقة الجغرافية:</span>
+            <span class="font-bold text-slate-800 font-mono">asia-southeast1 (Singapore)</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-medium">آخر تحديث سحابي:</span>
+            <span id="modal-last-sync" class="font-bold text-slate-800 font-mono">الآن</span>
+          </div>
+          <div class="pt-2 border-t border-slate-200">
+            <span class="text-slate-500 font-medium block mb-1">رابط قاعدة البيانات (Endpoint):</span>
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200 font-mono text-[11px] text-slate-700 break-all select-all">
+              https://asir-a738d-default-rtdb.asia-southeast1.firebasedatabase.app
+            </div>
+          </div>
+        </div>
+
+        <!-- تفاصيل الأمان -->
+        <div class="bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100 space-y-1.5">
+          <div class="flex items-center gap-2 font-bold text-indigo-900">
+            <span>🛡️</span>
+            <span>قواعد أمان قاعدة البيانات (Security Rules)</span>
+          </div>
+          <p class="text-indigo-800/80 leading-relaxed text-[11px]">
+            تم ضبط صلاحية القراءة والكتابة المفتوحة حتى تاريخ <strong>2026-11-20</strong> مما يتيح مزامنة فورية وسريعة من المتصفح دون الحاجة لمصادقة معقدة.
+          </p>
+        </div>
+
+        <!-- أزرار الإجراءات السريعة -->
+        <div class="space-y-2 pt-2">
+          <button onclick="forceSyncFromCloud()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-brand-600 text-white font-bold transition flex items-center justify-center gap-2">
+            <span>🔄</span>
+            <span>إعادة تحميل ومزامنة من السحابة الآن</span>
+          </button>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="downloadJsonBackup()" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition flex items-center justify-center gap-1.5">
+              <span>💾</span>
+              <span>تحميل نسخة JSON</span>
+            </button>
+            <button onclick="resetToInitialCloudData()" class="py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-bold transition flex items-center justify-center gap-1.5">
+              <span>⚠️</span>
+              <span>إعادة للبيانات النموذجية</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== نافذة إضافة وتعديل التزام مالي (MODAL CRUD) ==================== -->
+  <div id="cost-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-elevated flex flex-col">
+      
+      <!-- رأس النافذة -->
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+            ✍️
+          </div>
+          <div>
+            <h3 id="modal-title" class="text-base font-bold text-slate-900">إضافة التزام مالي جديد</h3>
+            <p class="text-xs text-slate-500">أدخل بيانات التكلفة وتاريخ الاستحقاق لتسجيلها في سحابة Firebase</p>
+          </div>
+        </div>
+        <button onclick="closeCostModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <!-- النموذج -->
+      <form id="cost-form" onsubmit="saveCostItem(event)" class="p-6 space-y-4">
+        <input type="hidden" id="form-id">
+
+        <!-- الاسم -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم البند أو الوصف *</label>
+          <input type="text" id="form-title" required placeholder="مثال: إيجار فرع صويلح - الدفعة الثانية" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-brand-600 focus:bg-white transition">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- القسم الرئيسي -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">القسم الرئيسي *</label>
+            <select id="form-cat" onchange="updateSubcatDropdown(this.value)" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-brand-600 focus:bg-white transition">
+              <option value="rentals">🏢 قسم الإيجارات (Rentals)</option>
+              <option value="government">🏛️ الرسوم والتراخيص الحكومية</option>
+              <option value="tech">💻 التقنية والاشتراكات والبرمجيات</option>
+            </select>
+          </div>
+
+          <!-- القسم الفرعي -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">القسم الفرعي *</label>
+            <select id="form-subcat" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-brand-600 focus:bg-white transition">
+              <!-- ديناميكي -->
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- القيمة -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">القيمة الإجمالية (ر.س) *</label>
+            <input type="number" id="form-amount" required min="1" step="0.01" placeholder="مثال: 50000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-mono focus:outline-none focus:border-brand-600 focus:bg-white transition">
+          </div>
+
+          <!-- دورية التكرار -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">دورية التكرار *</label>
+            <select id="form-recurrence" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-brand-600 focus:bg-white transition">
+              <option value="monthly">شهرياً (Monthly)</option>
+              <option value="quarterly">ربع سنوي (كل 3 أشهر)</option>
+              <option value="semi_annual">نصف سنوي (كل 6 أشهر)</option>
+              <option value="annual">سنوياً (Annual)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- تاريخ الاستحقاق -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ الاستحقاق أو نهاية العقد *</label>
+            <input type="date" id="form-due-date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 font-mono focus:outline-none focus:border-brand-600 focus:bg-white transition">
+          </div>
+
+          <!-- الجهة أو الفرع أو الموظف -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم الفرع / الموظف / المزود</label>
+            <input type="text" id="form-entity" placeholder="مثال: فرع صويلح الرئيسي أو العامل: أحمد" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-brand-600 focus:bg-white transition">
+          </div>
+        </div>
+
+        <!-- ملاحظات -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">ملاحظات أو تفاصيل الدفع</label>
+          <textarea id="form-notes" rows="2" placeholder="رقم العقد، الحساب البنكي، أو رقم الفاتورة..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-brand-600 focus:bg-white transition"></textarea>
+        </div>
+
+        <!-- أزرار الإجراء -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeCostModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold transition">
+            إلغاء
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-brand-600 text-white text-xs sm:text-sm font-bold shadow-md transition">
+            حفظ ومزامنة سحابياً
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== نافذة تأكيد السداد وتجديد الدورة (RENEWAL MODAL) ==================== -->
+  <div id="renew-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-emerald-200 max-w-md w-full p-6 shadow-elevated space-y-5">
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+          🎉
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900">تأكيد السداد وتجديد الدورة</h3>
+          <p class="text-xs text-slate-500">سيتم حفظ الدفعة في الأرشيف وتوليد موعد جديد في سحابة Firebase</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+        <div class="flex justify-between">
+          <span class="text-slate-500">اسم البند:</span>
+          <span id="renew-title" class="font-bold text-slate-900">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">المبلغ المسدد:</span>
+          <span id="renew-amount" class="font-bold text-emerald-600 font-mono text-sm">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">الدورية:</span>
+          <span id="renew-recurrence" class="text-slate-800 font-semibold">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">الاستحقاق المنتهي:</span>
+          <span id="renew-current-due" class="text-slate-700 font-mono">-</span>
+        </div>
+        <div class="flex justify-between border-t border-slate-200 pt-2 text-emerald-700 font-bold">
+          <span>الاستحقاق القادم الجديد:</span>
+          <span id="renew-next-due" class="font-mono text-sm">-</span>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">رقم الإيصال أو المرجع (اختياري)</label>
+          <input type="text" id="renew-ref" placeholder="مثال: REF-92817" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button onclick="closeRenewModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold transition">
+          إلغاء
+        </button>
+        <button onclick="executeRenewal()" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition">
+          ✅ تأكيد السداد والتجديد
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== نافذة أرشيف وسجل السدادات ==================== -->
+  <div id="archive-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 max-w-3xl w-full max-h-[85vh] overflow-hidden shadow-elevated flex flex-col">
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+            📜
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">سجل وأرشيف المدفوعات التاريخية</h3>
+            <p class="text-xs text-slate-500">توثيق مالي متكامل لكافة السدادات المنجزة لمؤسسة صويلح</p>
+          </div>
+        </div>
+        <button onclick="closeArchiveModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1">
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-3">تاريخ السداد</th>
+                <th class="py-3 px-3">اسم البند</th>
+                <th class="py-3 px-3">المبلغ</th>
+                <th class="py-3 px-3">الدورة المسددة</th>
+                <th class="py-3 px-3">الموعد الجديد المتولد</th>
+                <th class="py-3 px-3">المرجع</th>
+              </tr>
+            </thead>
+            <tbody id="archive-table-body" class="divide-y divide-slate-100 text-slate-700">
+              <!-- ديناميكي -->
+            </tbody>
+          </table>
+        </div>
+        <div id="archive-empty" class="hidden text-center py-10 text-slate-400 text-xs">
+          لا توجد عمليات سداد مؤرشفة بعد.
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+        <span id="archive-sum-text" class="text-xs font-bold text-emerald-700">إجمالي السدادات المؤرشفة: 0 ر.س</span>
+        <button onclick="closeArchiveModal()" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition">
+          إغلاق
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- توست الإشعارات السريعة (Toast Notification) -->
+  <div id="toast" class="fixed bottom-6 left-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-elevated flex items-center gap-3 text-xs sm:text-sm font-bold">
+    <span id="toast-icon">✨</span>
+    <span id="toast-text">تمت العملية بنجاح!</span>
+  </div>
+
+  <!-- ==================== كود الجافاسكربت ومزامنة FIREBASE ==================== -->
+  <script>
+    // 0. إعدادات سحابة Firebase Realtime Database
+    const FIREBASE_BASE_URL = "https://asir-a738d-default-rtdb.asia-southeast1.firebasedatabase.app";
+    const FIREBASE_ENDPOINT = `${FIREBASE_BASE_URL}/.json`;
+
+    // 1. التصنيفات والشجرة
+    const TAXONOMY = {
+      rentals: {
+        name: 'قسم الإيجارات',
+        icon: '🏢',
+        color: '#3b82f6',
+        subcategories: [
+          { id: 'branch_lease', name: 'إيجارات الفروع' },
+          { id: 'staff_housing', name: 'سكن العمال' }
+        ]
+      },
+      government: {
+        name: 'الرسوم الحكومية والتراخيص',
+        icon: '🏛️',
+        color: '#f59e0b',
+        subcategories: [
+          { id: 'labor_fees', name: 'شؤون العمالة (إقامات ورخص عمل وتأمين)' },
+          { id: 'corporate_compliance', name: 'الأمور الحكومية العامة (سجل تجاري، بلديات، دفاع مدني)' }
+        ]
+      },
+      tech: {
+        name: 'التقنية والاشتراكات',
+        icon: '💻',
+        color: '#8b5cf6',
+        subcategories: [
+          { id: 'telecom', name: 'النت والاتصالات (فواتير أرضي وجوالات)' },
+          { id: 'saas_pos', name: 'البرامج المحاسبية ونقاط البيع POS السحابية' }
+        ]
+      }
+    };
+
+    function getFutureDate(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    }
+
+    // 2. البيانات النموذجية الأولية
+    const DEFAULT_DATA = [
+      {
+        id: 'cost-1',
+        title: 'إيجار فرع صويلح الرئيسي - الدفعة الثانية',
+        category: 'rentals',
+        subcategory: 'branch_lease',
+        amount: 60000,
+        dueDate: getFutureDate(4), // بعد 4 أيام (أحمر)
+        recurrence: 'semi_annual',
+        entity: 'فرع صويلح الرئيسي',
+        notes: 'عقد منصة إيجار رقم 9821'
+      },
+      {
+        id: 'cost-2',
+        title: 'تجديد إقامات ورخص عمل (دفعة معلمين صويلح)',
+        category: 'government',
+        subcategory: 'labor_fees',
+        amount: 38400,
+        dueDate: getFutureDate(2), // بعد يومين (أحمر)
+        recurrence: 'annual',
+        entity: 'شؤون العمالة والتشغيل',
+        notes: 'شامل رخص العمل والمقابل المالي والتأمين الطبي'
+      },
+      {
+        id: 'cost-3',
+        title: 'فاتورة باقة إنترنت الألياف 5G للفروع',
+        category: 'tech',
+        subcategory: 'telecom',
+        amount: 2450,
+        dueDate: getFutureDate(6), // بعد 6 أيام (أحمر)
+        recurrence: 'monthly',
+        entity: 'شركة الاتصالات STC',
+        notes: 'حساب الفاتورة الموحد 800319491'
+      },
+      {
+        id: 'cost-4',
+        title: 'إيجار عمارة سكن العمال - حي اليرموك',
+        category: 'rentals',
+        subcategory: 'staff_housing',
+        amount: 18000,
+        dueDate: getFutureDate(18), // بعد 18 يوماً (أصفر)
+        recurrence: 'quarterly',
+        entity: 'سكن عمال صويلح',
+        notes: 'شامل استهلاك المياه والكهرباء'
+      },
+      {
+        id: 'cost-5',
+        title: 'اشتراك منصة قوى ومدد السنوي (حماية الأجور)',
+        category: 'government',
+        subcategory: 'corporate_compliance',
+        amount: 7200,
+        dueDate: getFutureDate(24), // بعد 24 يوماً (أصفر)
+        recurrence: 'annual',
+        entity: 'منصة قوى / مدد',
+        notes: 'توثيق العقود وسجلات الأجور الشهرية'
+      },
+      {
+        id: 'cost-6',
+        title: 'رخصة الدفاع المدني وسلامة المنشآت',
+        category: 'government',
+        subcategory: 'corporate_compliance',
+        amount: 4500,
+        dueDate: getFutureDate(65), // بعد 65 يوماً (أخضر)
+        recurrence: 'annual',
+        entity: 'الدفاع المدني - منصة بلدي',
+        notes: 'شهادة السلامة الدورية'
+      },
+      {
+        id: 'cost-7',
+        title: 'اشتراك نظام نقاط البيع POS والبرنامج المحاسبي',
+        category: 'tech',
+        subcategory: 'saas_pos',
+        amount: 14000,
+        dueDate: getFutureDate(88), // بعد 88 يوماً (أخضر)
+        recurrence: 'annual',
+        entity: 'نظام إدارة المبيعات السحابي',
+        notes: 'شامل ترخيص 5 كاشيرات والدعم الفني المباشر'
+      }
+    ];
+
+    const DEFAULT_ARCHIVE = [
+      {
+        id: 'arch-sample',
+        title: 'إيجار فرع صويلح الرئيسي - الدفعة الأولى',
+        amount: 60000,
+        cycleDue: '2026-04-10',
+        nextDue: '2026-10-10',
+        ref: 'REC-55019',
+        date: '2026-04-09'
+      }
+    ];
+
+    // 3. حالة التطبيق
+    let items = [];
+    let archive = [];
+    let activeFilter = 'all';
+    let viewMode = 'cards';
+    let userRole = 'admin';
+    let pendingRenewalId = null;
+    let donutChart = null;
+    let barChart = null;
+    let sseSource = null;
+    let isSavingToFirebase = false;
+
+    // مساعد لتحويل كائنات Firebase المحتملة إلى مصفوفات نقية
+    function cleanArray(val) {
+      if (!val) return [];
+      if (Array.isArray(val)) return val.filter(Boolean);
+      return Object.values(val);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. تحميل الكاش المحلي فوراً لتجنب أي وميض بالواجهة
+      loadLocalCache();
+      initFormSubcats();
+      refreshUI();
+      setInterval(updateCountdowns, 1000);
+
+      // 2. المزامنة السحابية مع Firebase Realtime Database
+      initFirebaseSync();
+
+      // 3. إعادة المزامنة عند عودة التركيز للنافذة أو عودة الإنترنت
+      window.addEventListener('focus', () => syncFromFirebase(false));
+      window.addEventListener('online', () => {
+        showToast('تمت استعادة الاتصال بالإنترنت', '🌐');
+        initFirebaseSync();
+      });
+      window.addEventListener('offline', () => {
+        setSyncBadge('offline', 'حفظ محلي (أوفلاين)');
+      });
+    });
+
+    // تحميل الكاش المحلي السريع
+    function loadLocalCache() {
+      const savedItems = localStorage.getItem('costflow_items');
+      const savedArchive = localStorage.getItem('costflow_archive');
+      items = savedItems ? cleanArray(JSON.parse(savedItems)) : [...DEFAULT_DATA];
+      archive = savedArchive ? cleanArray(JSON.parse(savedArchive)) : [...DEFAULT_ARCHIVE];
+    }
+
+    // حفظ في الكاش المحلي
+    function saveLocalCache() {
+      localStorage.setItem('costflow_items', JSON.stringify(items));
+      localStorage.setItem('costflow_archive', JSON.stringify(archive));
+    }
+
+    // تحديث مؤشر حالة السحابة
+    function setSyncBadge(status, text) {
+      const dot = document.getElementById('sync-dot');
+      const txt = document.getElementById('sync-text');
+      const modalStatus = document.getElementById('modal-cloud-status');
+
+      if (!dot || !txt) return;
+
+      txt.textContent = text;
+      dot.className = 'w-2.5 h-2.5 rounded-full';
+
+      if (status === 'connected') {
+        dot.classList.add('bg-emerald-500', 'animate-pulse');
+        if (modalStatus) {
+          modalStatus.className = 'font-bold flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200';
+          modalStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> متصل ومزامن لحظياً';
+        }
+      } else if (status === 'syncing') {
+        dot.classList.add('bg-amber-500', 'animate-spin');
+        if (modalStatus) {
+          modalStatus.className = 'font-bold flex items-center gap-1.5 text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200';
+          modalStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> جاري المزامنة...';
+        }
+      } else if (status === 'offline') {
+        dot.classList.add('bg-slate-400');
+        if (modalStatus) {
+          modalStatus.className = 'font-bold flex items-center gap-1.5 text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200';
+          modalStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> وضع محلي (أوفلاين)';
+        }
+      } else if (status === 'error') {
+        dot.classList.add('bg-red-500');
+        if (modalStatus) {
+          modalStatus.className = 'font-bold flex items-center gap-1.5 text-red-700 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200';
+          modalStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> تعذر الاتصال بالسحابة';
+        }
+      }
+    }
+
+    // تهيئة الاتصال والمزامنة الحية مع Firebase Realtime Database
+    async function initFirebaseSync() {
+      setSyncBadge('syncing', 'جاري الاتصال بالسحابة...');
+      await syncFromFirebase(false);
+      connectRealtimeSSE();
+    }
+
+    // جلب البيانات من Firebase
+    async function syncFromFirebase(showToastNotify = true) {
+      try {
+        const response = await fetch(FIREBASE_ENDPOINT, { cache: 'no-store' });
+        if (!response.ok) throw new Error('فشل استجابة الخادم: ' + response.status);
+
+        const data = await response.json();
+
+        // إذا كانت قاعدة البيانات فارغة تماماً (null)، نملؤها بالبيانات النموذجية الأولية
+        if (!data || (!data.items && !data.archive)) {
+          console.log('قاعدة بيانات Firebase فارغة، جاري تهيئتها بالبيانات النموذجية الأولية...');
+          await saveToFirebase(true);
+          return;
+        }
+
+        if (data.items) {
+          items = cleanArray(data.items);
+        }
+        if (data.archive) {
+          archive = cleanArray(data.archive);
+        }
+
+        saveLocalCache();
+        refreshUI();
+        setSyncBadge('connected', 'سحابي متصل');
+
+        const nowStr = new Date().toLocaleTimeString('ar-SA');
+        const lastSyncEl = document.getElementById('modal-last-sync');
+        if (lastSyncEl) lastSyncEl.textContent = nowStr;
+
+        if (showToastNotify) {
+          showToast('تمت المزامنة وتحديث البيانات من السحابة بنجاح!', '☁️');
+        }
+      } catch (err) {
+        console.warn('تعذر الاتصال بـ Firebase، جاري العمل بالوضع المحلي:', err);
+        setSyncBadge('offline', 'حفظ محلي (أوفلاين)');
+      }
+    }
+
+    // الاستماع للتحديثات اللحظية عبر Server-Sent Events (SSE) المدمجة في Firebase
+    function connectRealtimeSSE() {
+      if (sseSource) {
+        sseSource.close();
+      }
+
+      try {
+        sseSource = new EventSource(FIREBASE_ENDPOINT);
+
+        sseSource.addEventListener('put', (event) => {
+          if (isSavingToFirebase) return; // تفادي الحلقة عند حفظ المستخدم نفسه
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed && parsed.data) {
+              if (parsed.path === '/') {
+                if (parsed.data.items) items = cleanArray(parsed.data.items);
+                if (parsed.data.archive) archive = cleanArray(parsed.data.archive);
+              } else if (parsed.path === '/items') {
+                items = cleanArray(parsed.data);
+              } else if (parsed.path === '/archive') {
+                archive = cleanArray(parsed.data);
+              }
+              saveLocalCache();
+              refreshUI();
+              setSyncBadge('connected', 'سحابي متصل');
+            }
+          } catch (e) {
+            console.error('خطأ في معالجة تحديث SSE:', e);
+          }
+        });
+
+        sseSource.onopen = () => {
+          setSyncBadge('connected', 'سحابي متصل');
+        };
+
+        sseSource.onerror = () => {
+          // في حال حدوث انقطاع، المتصفح سيعيد المحاولة تلقائياً
+          setSyncBadge('offline', 'حفظ محلي (أوفلاين)');
+        };
+      } catch (e) {
+        console.warn('EventSource غير متاح، الاعتماد على المزامنة الدورية.');
+      }
+    }
+
+    // حفظ البيانات في السحابة وفي الكاش المحلي
+    async function saveData() {
+      saveLocalCache();
+      await saveToFirebase();
+    }
+
+    async function saveToFirebase(isInitial = false) {
+      isSavingToFirebase = true;
+      setSyncBadge('syncing', 'جاري المزامنة...');
+
+      const payload = {
+        items: items,
+        archive: archive,
+        lastUpdated: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch(FIREBASE_ENDPOINT, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          setSyncBadge('connected', 'سحابي متصل');
+          const lastSyncEl = document.getElementById('modal-last-sync');
+          if (lastSyncEl) lastSyncEl.textContent = new Date().toLocaleTimeString('ar-SA');
+          if (isInitial) {
+            showToast('تمت تهيئة قاعدة بيانات Firebase بنجاح!', '🔥');
+          }
+        } else {
+          setSyncBadge('error', 'خطأ بالمزامنة');
+        }
+      } catch (err) {
+        console.warn('تعذر الحفظ في Firebase، تم الحفظ محلياً:', err);
+        setSyncBadge('offline', 'حفظ محلي (أوفلاين)');
+      } finally {
+        setTimeout(() => { isSavingToFirebase = false; }, 800);
+      }
+    }
+
+    // نوافذ السحابة
+    function openCloudModal() {
+      document.getElementById('cloud-modal').classList.remove('hidden');
+      document.getElementById('cloud-modal').classList.add('flex');
+    }
+
+    function closeCloudModal() {
+      document.getElementById('cloud-modal').classList.add('hidden');
+      document.getElementById('cloud-modal').classList.remove('flex');
+    }
+
+    async function forceSyncFromCloud() {
+      setSyncBadge('syncing', 'جاري المزامنة...');
+      await syncFromFirebase(true);
+      closeCloudModal();
+    }
+
+    function downloadJsonBackup() {
+      const backup = {
+        system: "CostFlow صويلح",
+        exportedAt: new Date().toISOString(),
+        items: items,
+        archive: archive
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `نسخة_احتياطية_صويلح_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('تم تنزيل النسخة الاحتياطية بنجاح!', '💾');
+    }
+
+    async function resetToInitialCloudData() {
+      if (!confirm('هل أنت متأكد من إعادة تعيين قاعدة بيانات صويلح للبيانات النموذجية الأولية؟ سيتم استبدال البيانات الحالية.')) {
+        return;
+      }
+      items = [...DEFAULT_DATA];
+      archive = [...DEFAULT_ARCHIVE];
+      saveLocalCache();
+      refreshUI();
+      await saveToFirebase(true);
+      closeCloudModal();
+    }
+
+    // 4. التبديل والفلترة
+    function switchTab(tab) {
+      const proto = document.getElementById('tab-proto-content');
+      const srs = document.getElementById('tab-srs-content');
+      const btnProto = document.getElementById('nav-btn-proto');
+      const btnSrs = document.getElementById('nav-btn-srs');
+
+      if (tab === 'proto') {
+        proto.classList.remove('hidden');
+        srs.classList.add('hidden');
+        btnProto.className = "flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-sm border border-slate-200/60";
+        btnSrs.className = "flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900";
+        initCharts();
+      } else {
+        srs.classList.remove('hidden');
+        proto.classList.add('hidden');
+        btnSrs.className = "flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-sm border border-slate-200/60";
+        btnProto.className = "flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function changeRole(role) {
+      userRole = role;
+      document.getElementById('user-role-select').value = role;
+      const badge = document.getElementById('viewer-badge');
+      const topBtn = document.getElementById('top-add-btn');
+
+      if (role === 'viewer') {
+        badge.classList.remove('hidden');
+        topBtn.classList.add('opacity-40', 'pointer-events-none');
+        showToast('تم التبديل لوضع المشاهدة: تم تعطيل أزرار التعديل والحذف والسداد.', '👁️');
+      } else {
+        badge.classList.add('hidden');
+        topBtn.classList.remove('opacity-40', 'pointer-events-none');
+        showToast('تم التبديل لوضع المدير: كامل الصلاحيات مفعلة.', '👑');
+      }
+      renderItems();
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      const cards = document.getElementById('items-cards-container');
+      const table = document.getElementById('items-table-container');
+      const btnCards = document.getElementById('view-mode-cards');
+      const btnTable = document.getElementById('view-mode-table');
+
+      if (mode === 'cards') {
+        cards.classList.remove('hidden');
+        table.classList.add('hidden');
+        btnCards.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white text-slate-900 shadow-sm";
+        btnTable.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-900";
+      } else {
+        table.classList.remove('hidden');
+        cards.classList.add('hidden');
+        btnTable.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white text-slate-900 shadow-sm";
+        btnCards.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-900";
+      }
+    }
+
+    function filterCat(cat) {
+      activeFilter = cat;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.className = "cat-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200";
+      });
+      event.target.className = "cat-pill active px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-slate-900 text-white shadow-sm";
+      renderItems();
+    }
+
+    // 5. حساب المؤقت والترميز اللوني
+    function getTimeDiff(dueDateStr) {
+      const now = new Date();
+      const target = new Date(dueDateStr + 'T23:59:59');
+      const diffMs = target - now;
+
+      const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+      let level = 'safe'; // danger | warning | safe
+      if (totalDays <= 7 || diffMs < 0) level = 'danger';
+      else if (totalDays <= 30) level = 'warning';
+
+      return { diffMs, totalDays, hours, minutes, seconds, isOverdue: diffMs < 0, level };
+    }
+
+    function renderBadge(t) {
+      if (t.isOverdue) {
+        return `
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-red-100 text-red-700 font-extrabold text-xs pulse-urgent border border-red-200">
+            <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+            <span>متأخر عن السداد!</span>
+          </div>
+        `;
+      }
+      if (t.level === 'danger') {
+        return `
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-red-50 text-red-700 font-extrabold text-xs pulse-urgent border border-red-200/80">
+            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span>متبقي: ${t.totalDays} يوم، ${t.hours} س، ${t.minutes} د</span>
+          </div>
+        `;
+      }
+      if (t.level === 'warning') {
+        return `
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs border border-amber-200/80">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>متبقي: ${t.totalDays} يوم، ${t.hours} س</span>
+          </div>
+        `;
+      }
+      return `
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200/80">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>متبقي: ${t.totalDays} يوم</span>
+        </div>
+      `;
+    }
+
+    function formatRecurrence(rec) {
+      const map = {
+        monthly: 'شهرياً',
+        quarterly: 'ربع سنوي',
+        semi_annual: 'نصف سنوي',
+        annual: 'سنوياً'
+      };
+      return map[rec] || rec;
+    }
+
+    // 6. التحديث والرسم
+    function refreshUI() {
+      updateStats();
+      renderItems();
+      initCharts();
+    }
+
+    function updateStats() {
+      let monthlySum = 0;
+      let dCount = 0, dSum = 0;
+      let wCount = 0, wSum = 0;
+      let sCount = 0, sSum = 0;
+      let cRentals = 0, cGov = 0, cTech = 0;
+
+      items.forEach(it => {
+        if (it.recurrence === 'monthly') monthlySum += it.amount;
+        else if (it.recurrence === 'quarterly') monthlySum += (it.amount / 3);
+        else if (it.recurrence === 'semi_annual') monthlySum += (it.amount / 6);
+        else if (it.recurrence === 'annual') monthlySum += (it.amount / 12);
+
+        if (it.category === 'rentals') cRentals++;
+        else if (it.category === 'government') cGov++;
+        else if (it.category === 'tech') cTech++;
+
+        const t = getTimeDiff(it.dueDate);
+        if (t.level === 'danger') { dCount++; dSum += it.amount; }
+        else if (t.level === 'warning') { wCount++; wSum += it.amount; }
+        else { sCount++; sSum += it.amount; }
+      });
+
+      document.getElementById('stat-monthly').textContent = Math.round(monthlySum).toLocaleString('en-US') + ' ر.س';
+      document.getElementById('stat-danger-count').textContent = dCount + ' بنود';
+      document.getElementById('stat-danger-sum').textContent = 'بقيمة: ' + dSum.toLocaleString('en-US') + ' ر.س';
+
+      document.getElementById('stat-warning-count').textContent = wCount + ' بنود';
+      document.getElementById('stat-warning-sum').textContent = 'بقيمة: ' + wSum.toLocaleString('en-US') + ' ر.س';
+
+      document.getElementById('stat-safe-count').textContent = sCount + ' بنود';
+      document.getElementById('stat-safe-sum').textContent = 'بقيمة: ' + sSum.toLocaleString('en-US') + ' ر.س';
+
+      document.getElementById('pill-count-all').textContent = items.length;
+      document.getElementById('pill-count-rentals').textContent = cRentals;
+      document.getElementById('pill-count-gov').textContent = cGov;
+      document.getElementById('pill-count-tech').textContent = cTech;
+    }
+
+    function renderItems() {
+      const q = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+      const filterUrgency = document.getElementById('urgency-filter')?.value || 'all';
+
+      const filtered = items.filter(it => {
+        if (activeFilter !== 'all' && it.category !== activeFilter) return false;
+        const t = getTimeDiff(it.dueDate);
+        if (filterUrgency !== 'all' && t.level !== filterUrgency) return false;
+        if (q) {
+          const matchTitle = (it.title || '').toLowerCase().includes(q);
+          const matchEntity = (it.entity || '').toLowerCase().includes(q);
+          if (!matchTitle && !matchEntity) return false;
+        }
+        return true;
+      });
+
+      filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+      const cardsContainer = document.getElementById('items-cards-container');
+      const tableBody = document.getElementById('items-table-body');
+      const emptyState = document.getElementById('empty-state');
+
+      if (!cardsContainer || !tableBody) return;
+
+      if (filtered.length === 0) {
+        cardsContainer.innerHTML = '';
+        tableBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      const isAdmin = userRole === 'admin';
+
+      // 1. بطاقات حديثة ومريحة
+      cardsContainer.innerHTML = filtered.map(it => {
+        const t = getTimeDiff(it.dueDate);
+        const cat = TAXONOMY[it.category] || { name: it.category, icon: '📌' };
+
+        let borderStyle = 'border-slate-200/80';
+        let bgStyle = 'bg-white';
+        let shadowStyle = 'shadow-soft hover:shadow-card';
+
+        if (t.level === 'danger') {
+          borderStyle = 'border-red-300';
+          bgStyle = 'bg-gradient-to-b from-red-50/30 to-white';
+          shadowStyle = 'shadow-md shadow-red-100 hover:shadow-lg';
+        } else if (t.level === 'warning') {
+          borderStyle = 'border-amber-300';
+          bgStyle = 'bg-gradient-to-b from-amber-50/20 to-white';
+        }
+
+        return `
+          <div class="rounded-3xl p-6 border ${borderStyle} ${bgStyle} ${shadowStyle} transition-all flex flex-col justify-between group">
+            
+            <div>
+              <!-- التصنيف والدورية -->
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="text-xs px-2.5 py-1 rounded-xl bg-slate-100 font-bold text-slate-700 flex items-center gap-1.5">
+                  <span>${cat.icon}</span>
+                  <span>${cat.name}</span>
+                </span>
+                <span class="text-xs px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 font-bold">
+                  ${formatRecurrence(it.recurrence)}
+                </span>
+              </div>
+
+              <!-- العنوان والفرع -->
+              <h4 class="text-base font-extrabold text-slate-900 mb-1 leading-snug">${it.title}</h4>
+              ${it.entity ? `
+                <div class="text-xs text-slate-500 flex items-center gap-1 mb-4 font-medium">
+                  <span>📍</span>
+                  <span>${it.entity}</span>
+                </div>
+              ` : '<div class="h-4"></div>'}
+
+              <!-- الصندوق المالي وتاريخ الاستحقاق -->
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between mb-4">
+                <div>
+                  <span class="text-[11px] text-slate-400 block font-bold">القيمة المالية</span>
+                  <span class="text-xl font-black text-slate-900 font-mono">${it.amount.toLocaleString('en-US')} ر.س</span>
+                </div>
+                <div class="text-left">
+                  <span class="text-[11px] text-slate-400 block font-bold">تاريخ الاستحقاق</span>
+                  <span class="text-xs font-bold text-slate-700 font-mono">${it.dueDate}</span>
+                </div>
+              </div>
+
+              <!-- العداد التنازلي المباشر -->
+              <div class="timer-slot mb-3" data-due="${it.dueDate}">
+                ${renderBadge(t)}
+              </div>
+
+              ${it.notes ? `
+                <p class="text-xs text-slate-500 line-clamp-2 italic mb-3">💬 ${it.notes}</p>
+              ` : ''}
+            </div>
+
+            <!-- أزرار الإجراءات -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
+              
+              <!-- زر سداد وتجديد -->
+              <button onclick="openRenewModal('${it.id}')" ${!isAdmin ? 'disabled' : ''} class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition-all ${!isAdmin ? 'opacity-30 cursor-not-allowed' : ''}">
+                <span>✅</span>
+                <span>سداد وتجديد الدورة</span>
+              </button>
+
+              <!-- زر تعديل -->
+              <button onclick="openCostModal('${it.id}')" ${!isAdmin ? 'disabled' : ''} class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs transition ${!isAdmin ? 'opacity-30 cursor-not-allowed' : ''}" title="تعديل">
+                ✏️
+              </button>
+
+              <!-- زر حذف -->
+              <button onclick="deleteItem('${it.id}')" ${!isAdmin ? 'disabled' : ''} class="p-2.5 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-400 text-xs transition ${!isAdmin ? 'opacity-30 cursor-not-allowed' : ''}" title="حذف">
+                🗑️
+              </button>
+
+            </div>
+
+          </div>
+        `;
+      }).join('');
+
+      // 2. جدول البيانات
+      tableBody.innerHTML = filtered.map(it => {
+        const t = getTimeDiff(it.dueDate);
+        const cat = TAXONOMY[it.category] || { name: it.category, icon: '📌' };
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-4 px-5">
+              <div class="font-bold text-slate-900">${it.title}</div>
+              <div class="text-xs text-slate-500">${cat.name}</div>
+            </td>
+            <td class="py-4 px-5 text-xs text-slate-600">${it.entity || '-'}</td>
+            <td class="py-4 px-5 font-black text-slate-900 font-mono text-sm">${it.amount.toLocaleString('en-US')} ر.س</td>
+            <td class="py-4 px-5 text-xs text-slate-600 font-bold">${formatRecurrence(it.recurrence)}</td>
+            <td class="py-4 px-5 text-xs font-mono text-slate-700">${it.dueDate}</td>
+            <td class="py-4 px-5">${renderBadge(t)}</td>
+            <td class="py-4 px-5 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <button onclick="openRenewModal('${it.id}')" ${!isAdmin ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition ${!isAdmin ? 'opacity-30 cursor-not-allowed' : ''}">
+                  سداد
+                </button>
+                <button onclick="openCostModal('${it.id}')" ${!isAdmin ? 'disabled' : ''} class="p-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs hover:bg-slate-200 transition ${!isAdmin ? 'opacity-30 cursor-not-allowed' : ''}">
+                  ✏️
+                </button>
+                <button onclick="deleteItem('${it.id}')" ${!isAdmin ? 'disabled' : ''} class="p-1.5 rounded-lg bg-slate-100 text-slate-400 text-xs hover:bg-red-50 hover:text-red-600 transition ${!isAdmin ? 'opacity-30 cursor-not-allowed' : ''}">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateCountdowns() {
+      document.querySelectorAll('.timer-slot').forEach(el => {
+        const due = el.getAttribute('data-due');
+        if (due) {
+          const t = getTimeDiff(due);
+          el.innerHTML = renderBadge(t);
+        }
+      });
+    }
+
+    // 7. دورة إعادة تفعيل المؤقت بعد السداد (Renewal Logic)
+    function openRenewModal(id) {
+      if (userRole !== 'admin') return;
+      const it = items.find(x => x.id === id);
+      if (!it) return;
+
+      pendingRenewalId = id;
+      document.getElementById('renew-title').textContent = it.title;
+      document.getElementById('renew-amount').textContent = it.amount.toLocaleString('en-US') + ' ر.س';
+      document.getElementById('renew-recurrence').textContent = formatRecurrence(it.recurrence);
+      document.getElementById('renew-current-due').textContent = it.dueDate;
+
+      const nextDue = calculateNextDate(it.dueDate, it.recurrence);
+      document.getElementById('renew-next-due').textContent = nextDue;
+      document.getElementById('renew-ref').value = 'REC-' + Math.floor(10000 + Math.random() * 90000);
+
+      document.getElementById('renew-modal').classList.remove('hidden');
+      document.getElementById('renew-modal').classList.add('flex');
+    }
+
+    function closeRenewModal() {
+      document.getElementById('renew-modal').classList.add('hidden');
+      document.getElementById('renew-modal').classList.remove('flex');
+      pendingRenewalId = null;
+    }
+
+    function calculateNextDate(currentDateStr, recurrence) {
+      const parts = currentDateStr.split('-');
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+
+      const dateObj = new Date(y, m, d);
+      if (recurrence === 'monthly') dateObj.setMonth(dateObj.getMonth() + 1);
+      else if (recurrence === 'quarterly') dateObj.setMonth(dateObj.getMonth() + 3);
+      else if (recurrence === 'semi_annual') dateObj.setMonth(dateObj.getMonth() + 6);
+      else if (recurrence === 'annual') dateObj.setFullYear(dateObj.getFullYear() + 1);
+
+      const nextY = dateObj.getFullYear();
+      const nextM = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const nextD = String(dateObj.getDate()).padStart(2, '0');
+      return `${nextY}-${nextM}-${nextD}`;
+    }
+
+    function executeRenewal() {
+      if (!pendingRenewalId) return;
+      const it = items.find(x => x.id === pendingRenewalId);
+      if (!it) return;
+
+      const oldDue = it.dueDate;
+      const newDue = calculateNextDate(oldDue, it.recurrence);
+      const ref = document.getElementById('renew-ref').value.trim() || 'AUTO-PAID';
+
+      // 1. حفظ في الأرشيف
+      archive.unshift({
+        id: 'arch-' + Date.now(),
+        title: it.title,
+        amount: it.amount,
+        cycleDue: oldDue,
+        nextDue: newDue,
+        ref: ref,
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      // 2. تحديث التاريخ الجديد وتصفير المؤقت
+      it.dueDate = newDue;
+      saveData();
+      closeRenewModal();
+      refreshUI();
+
+      // احتفال بالكونفيتي لتجربة مستخدم مبهجة ومودرن
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.8 }
+      });
+
+      showToast(`تم بنجاح سداد وتجديد [${it.title}] ومزامنتها سحابياً! الاستحقاق القادم: ${newDue}`, '🎉');
+    }
+
+    // 8. نموذج الإضافة والتعديل (CRUD)
+    function initFormSubcats() {
+      const formCat = document.getElementById('form-cat');
+      if (formCat) {
+        updateSubcatDropdown(formCat.value);
+      }
+    }
+
+    function updateSubcatDropdown(catKey) {
+      const sub = document.getElementById('form-subcat');
+      const cat = TAXONOMY[catKey];
+      if (!cat || !sub) return;
+      sub.innerHTML = cat.subcategories.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    function openCostModal(editId = null) {
+      if (userRole !== 'admin') return;
+
+      const form = document.getElementById('cost-form');
+      form.reset();
+      document.getElementById('form-id').value = '';
+
+      if (editId) {
+        const it = items.find(x => x.id === editId);
+        if (!it) return;
+
+        document.getElementById('modal-title').textContent = 'تعديل التزام مالي';
+        document.getElementById('form-id').value = it.id;
+        document.getElementById('form-title').value = it.title;
+        document.getElementById('form-cat').value = it.category;
+        updateSubcatDropdown(it.category);
+        document.getElementById('form-subcat').value = it.subcategory;
+        document.getElementById('form-amount').value = it.amount;
+        document.getElementById('form-recurrence').value = it.recurrence;
+        document.getElementById('form-due-date').value = it.dueDate;
+        document.getElementById('form-entity').value = it.entity || '';
+        document.getElementById('form-notes').value = it.notes || '';
+      } else {
+        document.getElementById('modal-title').textContent = 'إضافة التزام مالي جديد';
+        document.getElementById('form-due-date').value = getFutureDate(30);
+      }
+
+      document.getElementById('cost-modal').classList.remove('hidden');
+      document.getElementById('cost-modal').classList.add('flex');
+    }
+
+    function closeCostModal() {
+      document.getElementById('cost-modal').classList.add('hidden');
+      document.getElementById('cost-modal').classList.remove('flex');
+    }
+
+    function saveCostItem(e) {
+      e.preventDefault();
+      const id = document.getElementById('form-id').value;
+      const title = document.getElementById('form-title').value.trim();
+      const category = document.getElementById('form-cat').value;
+      const subcategory = document.getElementById('form-subcat').value;
+      const amount = parseFloat(document.getElementById('form-amount').value);
+      const recurrence = document.getElementById('form-recurrence').value;
+      const dueDate = document.getElementById('form-due-date').value;
+      const entity = document.getElementById('form-entity').value.trim();
+      const notes = document.getElementById('form-notes').value.trim();
+
+      if (id) {
+        const idx = items.findIndex(x => x.id === id);
+        if (idx !== -1) {
+          items[idx] = { ...items[idx], title, category, subcategory, amount, recurrence, dueDate, entity, notes };
+        }
+        showToast('تم تعديل بيانات الالتزام وحفظها في سحابة Firebase!', '✏️');
+      } else {
+        items.unshift({
+          id: 'cost-' + Date.now(),
+          title, category, subcategory, amount, recurrence, dueDate, entity, notes
+        });
+        showToast('تمت إضافة الالتزام المالي ومزامنته في السحابة بنجاح!', '✨');
+      }
+
+      saveData();
+      closeCostModal();
+      refreshUI();
+    }
+
+    function deleteItem(id) {
+      if (userRole !== 'admin') return;
+      const it = items.find(x => x.id === id);
+      if (!it) return;
+
+      if (confirm(`هل أنت متأكد من حذف الالتزام [${it.title}]؟ سيتم حذفه من قاعدة البيانات السحابية.`)) {
+        items = items.filter(x => x.id !== id);
+        saveData();
+        refreshUI();
+        showToast('تم حذف البند من السحابة بنجاح', '🗑️');
+      }
+    }
+
+    // 9. الأرشيف
+    function openArchiveModal() {
+      const tbody = document.getElementById('archive-table-body');
+      const empty = document.getElementById('archive-empty');
+      let total = 0;
+
+      if (archive.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+        tbody.innerHTML = archive.map(a => {
+          total += a.amount;
+          return `
+            <tr class="hover:bg-slate-50 transition">
+              <td class="py-2.5 px-3 font-mono text-slate-500">${a.date}</td>
+              <td class="py-2.5 px-3 font-bold text-slate-900">${a.title}</td>
+              <td class="py-2.5 px-3 font-black text-emerald-600 font-mono">${a.amount.toLocaleString('en-US')} ر.س</td>
+              <td class="py-2.5 px-3 font-mono text-slate-600">${a.cycleDue}</td>
+              <td class="py-2.5 px-3 font-mono text-emerald-700 font-bold">${a.nextDue}</td>
+              <td class="py-2.5 px-3 font-mono text-slate-500">${a.ref}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('archive-sum-text').textContent = `إجمالي السدادات المؤرشفة: ${total.toLocaleString('en-US')} ر.س`;
+      document.getElementById('archive-modal').classList.remove('hidden');
+      document.getElementById('archive-modal').classList.add('flex');
+    }
+
+    function closeArchiveModal() {
+      document.getElementById('archive-modal').classList.add('hidden');
+      document.getElementById('archive-modal').classList.remove('flex');
+    }
+
+    // 10. الرسوم البيانية الفاخرة
+    function initCharts() {
+      let rSum = 0, gSum = 0, tSum = 0;
+      items.forEach(it => {
+        if (it.category === 'rentals') rSum += it.amount;
+        else if (it.category === 'government') gSum += it.amount;
+        else if (it.category === 'tech') tSum += it.amount;
+      });
+
+      const total = rSum + gSum + tSum || 1;
+      const elRentals = document.getElementById('chart-pct-rentals');
+      const elGov = document.getElementById('chart-pct-gov');
+      const elTech = document.getElementById('chart-pct-tech');
+
+      if (elRentals) elRentals.textContent = Math.round((rSum / total) * 100) + '%';
+      if (elGov) elGov.textContent = Math.round((gSum / total) * 100) + '%';
+      if (elTech) elTech.textContent = Math.round((tSum / total) * 100) + '%';
+
+      // Donut Chart
+      const ctxD = document.getElementById('categoryDonutChart');
+      if (ctxD) {
+        if (donutChart) donutChart.destroy();
+        donutChart = new Chart(ctxD, {
+          type: 'doughnut',
+          data: {
+            labels: ['الإيجارات', 'الرسوم الحكومية', 'التقنية والاشتراكات'],
+            datasets: [{
+              data: [rSum, gSum, tSum],
+              backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6'],
+              borderWidth: 2,
+              borderColor: '#ffffff',
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            cutout: '72%'
+          }
+        });
+      }
+
+      // Bar Chart
+      const ctxB = document.getElementById('timelineBarChart');
+      if (ctxB) {
+        if (barChart) barChart.destroy();
+        barChart = new Chart(ctxB, {
+          type: 'bar',
+          data: {
+            labels: ['أكتوبر', 'نوفمبر', 'ديسمبر', 'يناير', 'فبراير', 'مارس'],
+            datasets: [{
+              label: 'السيولة المتوقعة (ر.س)',
+              data: [78000, 24000, 18000, 62000, 15000, 22000],
+              backgroundColor: '#4f46e5',
+              borderRadius: 8,
+              barThickness: 24
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: '#64748b', font: { family: 'IBM Plex Sans Arabic', size: 11 } }
+              },
+              y: {
+                grid: { color: '#f1f5f9' },
+                ticks: { color: '#64748b', font: { family: 'IBM Plex Sans Arabic', size: 10 } }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // 11. تصدير Excel
+    function exportToCSV() {
+      let csv = '\uFEFF';
+      csv += 'الرقم,اسم البند,القسم الرئيسي,القيمة (ر.س),الدورية,تاريخ الاستحقاق,المتبقي بالأيام,الحالة,الجهة,ملاحظات\n';
+
+      items.forEach((it, i) => {
+        const t = getTimeDiff(it.dueDate);
+        const cat = TAXONOMY[it.category]?.name || it.category;
+        csv += `${i + 1},"${(it.title || '').replace(/"/g, '""')}","${cat}",${it.amount},"${formatRecurrence(it.recurrence)}",${it.dueDate},${t.totalDays},"${t.isOverdue ? 'متأخر' : 'ساري'}","${(it.entity || '').replace(/"/g, '""')}","${(it.notes || '').replace(/"/g, '""')}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `تقرير_تكاليف_صويلح_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('تم تصدير ملف الإكسل بنجاح!', '📊');
+    }
+
+    // 12. نظام التنبيهات السريعة الفاخر (Toast)
+    function showToast(msg, icon = '✨') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = msg;
+      document.getElementById('toast-icon').textContent = icon;
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
+  </script>
+
+</body>
+</html>
